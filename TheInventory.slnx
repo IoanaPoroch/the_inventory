@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="DomainLayer/DomainLayer.csproj" />
+  <Project Path="RepositoryLayer/RepositoryLayer.csproj" />
+  <Project Path="ServiceLayer/ServiceLayer.csproj" />
+  <Project Path="WebAPI/WebAPI.csproj" />
+</Solution>
