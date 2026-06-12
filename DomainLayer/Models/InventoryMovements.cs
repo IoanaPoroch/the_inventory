@@ -4,7 +4,6 @@ namespace DomainLayer.Models
 {
     public class InventoryMovements : BaseEntity
     {
-        public int Id { get; set; }
         public MovementType Type { get; set; }
         public int ProductId { get; set; }
         public int ProductQuantity { get; set; }
