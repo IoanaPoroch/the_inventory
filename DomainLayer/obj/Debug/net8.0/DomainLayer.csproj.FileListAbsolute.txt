@@ -1,5 +1,0 @@
-C:\Assist\TheInventory\DomainLayer\obj\Debug\net8.0\DomainLayer.GeneratedMSBuildEditorConfig.editorconfig
-C:\Assist\TheInventory\DomainLayer\obj\Debug\net8.0\DomainLayer.AssemblyInfoInputs.cache
-C:\Assist\TheInventory\DomainLayer\obj\Debug\net8.0\DomainLayer.AssemblyInfo.cs
-C:\Assist\TheInventory\DomainLayer\obj\Debug\net8.0\DomainLayer.csproj.CoreCompileInputs.cache
-C:\Assist\TheInventory\DomainLayer\obj\Debug\net8.0\DomainLayer.sourcelink.json
