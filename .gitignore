@@ -1,1 +1,10 @@
 .vs/
+bin/
+obj/
+
+# NuGet Packages
+*.nupkg
+
+# Visual Studio user-specific files
+*.user
+*.Backup
