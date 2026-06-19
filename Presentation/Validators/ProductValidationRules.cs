@@ -19,5 +19,11 @@ namespace Presentation.Validators
 
         public static IRuleBuilderOptions<T, decimal?> PriceRules<T>(this IRuleBuilder<T, decimal?> rule)
             => rule.GreaterThan(0).WithMessage("Price must be greater than 0.");
+
+        public static IRuleBuilderOptions<T, Guid> WarehouseIdRules<T>(this IRuleBuilder<T, Guid> rule)
+            => rule.NotEmpty().WithMessage("WarehouseId is required.");
+
+        public static IRuleBuilderOptions<T, Guid?> WarehouseIdRules<T>(this IRuleBuilder<T, Guid?> rule)
+            => rule.NotEmpty().WithMessage("WarehouseId must not be empty.");
     }
 }

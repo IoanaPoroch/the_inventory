@@ -1,13 +1,10 @@
 namespace Presentation.DTOs.Responses
 {
-    public class ProductResponseDto
+    public class WarehouseResponseDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string? Color { get; set; }
-        public string MadeIn { get; set; }
-        public decimal Price { get; set; }
-        public Guid WarehouseId { get; set; }
+        public string Address { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

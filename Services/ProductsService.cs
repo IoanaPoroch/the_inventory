@@ -64,10 +64,19 @@ namespace Services
             }
         }
 
-        public async Task<Product> CreateAsync(Product product, CancellationToken cancellationToken = default)
+        public async Task<Product?> CreateAsync(Product product, CancellationToken cancellationToken = default)
         {
             try
             {
+                var warehouseExists = await _context.Warehouses
+                    .AnyAsync(w => w.Id == product.WarehouseId && !w.IsDeleted, cancellationToken);
+
+                if (!warehouseExists)
+                {
+                    _logger.LogWarning("Warehouse with id {WarehouseId} was not found.", product.WarehouseId);
+                    return null;
+                }
+
                 product.Id = Guid.NewGuid();
 
                 _context.Products.Add(product);
@@ -97,10 +106,20 @@ namespace Services
                     return null;
                 }
 
+                var warehouseExists = await _context.Warehouses
+                    .AnyAsync(w => w.Id == product.WarehouseId && !w.IsDeleted, cancellationToken);
+
+                if (!warehouseExists)
+                {
+                    _logger.LogWarning("Warehouse with id {WarehouseId} was not found.", product.WarehouseId);
+                    return null;
+                }
+
                 existing.Name = product.Name;
                 existing.Color = product.Color;
                 existing.MadeIn = product.MadeIn;
                 existing.Price = product.Price;
+                existing.WarehouseId = product.WarehouseId;
 
                 await _context.SaveChangesAsync(cancellationToken);
 
@@ -115,7 +134,7 @@ namespace Services
             }
         }
 
-        public async Task<Product?> PatchAsync(Guid id, string? name, string? color, string? madeIn, decimal? price, CancellationToken cancellationToken = default)
+        public async Task<Product?> PatchAsync(Guid id, string? name, string? color, string? madeIn, decimal? price, Guid? warehouseId, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -126,6 +145,20 @@ namespace Services
                 {
                     _logger.LogWarning("Product with id {Id} was not found for patch.", id);
                     return null;
+                }
+
+                if (warehouseId is not null)
+                {
+                    var warehouseExists = await _context.Warehouses
+                        .AnyAsync(w => w.Id == warehouseId && !w.IsDeleted, cancellationToken);
+
+                    if (!warehouseExists)
+                    {
+                        _logger.LogWarning("Warehouse with id {WarehouseId} was not found.", warehouseId);
+                        return null;
+                    }
+
+                    existing.WarehouseId = warehouseId.Value;
                 }
 
                 if (name is not null) existing.Name = name;

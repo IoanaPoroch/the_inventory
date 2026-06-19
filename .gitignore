@@ -8,3 +8,5 @@ obj/
 # Visual Studio user-specific files
 *.user
 *.Backup
+
+*.http

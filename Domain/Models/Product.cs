@@ -11,5 +11,8 @@ namespace Domain.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
+        public Guid WarehouseId { get; set; }
+        public Warehouse Warehouse { get; set; } = null!;
+
     }
 }

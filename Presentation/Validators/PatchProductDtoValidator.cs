@@ -24,6 +24,10 @@ namespace Presentation.Validators
             RuleFor(x => x.Price)
                 .PriceRules()
                 .When(x => x.Price is not null);
+
+            RuleFor(x => x.WarehouseId)
+                .WarehouseIdRules()
+                .When(x => x.WarehouseId is not null);
         }
     }
 }
