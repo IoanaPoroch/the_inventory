@@ -15,6 +15,7 @@ namespace Domain.Data
         }
 
         public DbSet<Product> Products { get; set; }
+        public DbSet<Warehouse> Warehouses { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

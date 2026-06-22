@@ -33,7 +33,12 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 
 // per request scope for services that interact with the database
 builder.Services.AddScoped<IProductsService, ProductsService>();
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ProductMappingProfile>());
+builder.Services.AddScoped<IWarehousesService, WarehousesService>();
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<ProductMappingProfile>();
+    cfg.AddProfile<WarehouseMappingProfile>();
+});
 
 
 var app = builder.Build();

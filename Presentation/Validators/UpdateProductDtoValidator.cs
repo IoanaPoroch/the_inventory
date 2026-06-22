@@ -21,6 +21,9 @@ namespace Presentation.Validators
 
             RuleFor(x => x.Price)
                 .PriceRules();
+
+            RuleFor(x => x.WarehouseId)
+                .WarehouseIdRules();
         }
     }
 }

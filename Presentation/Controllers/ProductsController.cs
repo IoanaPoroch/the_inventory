@@ -52,6 +52,10 @@ namespace Presentation.Controllers
         {
             var product = _mapper.Map<Product>(dto);
             var created = await _productsService.CreateAsync(product, cancellationToken);
+
+            if (created is null)
+                return UnprocessableEntity($"Warehouse with id '{dto.WarehouseId}' was not found.");
+
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, _mapper.Map<ProductResponseDto>(created));
         }
 
@@ -70,7 +74,7 @@ namespace Presentation.Controllers
         [HttpPatch("{id:guid}")]
         public async Task<IActionResult> Patch(Guid id, PatchProductDto dto, CancellationToken cancellationToken)
         {
-            var patched = await _productsService.PatchAsync(id, dto.Name, dto.Color, dto.MadeIn, dto.Price, cancellationToken);
+            var patched = await _productsService.PatchAsync(id, dto.Name, dto.Color, dto.MadeIn, dto.Price, dto.WarehouseId, cancellationToken);
 
             if (patched is null)
                 return NotFound();
