@@ -2,6 +2,8 @@ using Domain.Data;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Services.Interfaces;
+using Services.Models;
 
 namespace Services
 {
@@ -40,7 +42,7 @@ namespace Services
             }
         }
 
-        public async Task<Warehouse?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<Warehouse>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -50,12 +52,11 @@ namespace Services
                 if (warehouse is null)
                 {
                     _logger.LogWarning("Warehouse with id {Id} was not found.", id);
-                    return null;
+                    return ServiceResult<Warehouse>.Fail(ServiceError.NotFound, $"Warehouse with id {id} was not found.");
                 }
 
                 _logger.LogInformation("Warehouse with id {Id} was found.", id);
-
-                return warehouse;
+                return ServiceResult<Warehouse>.Ok(warehouse);
             }
             catch (Exception ex)
             {
@@ -64,18 +65,15 @@ namespace Services
             }
         }
 
-        public async Task<Warehouse> CreateAsync(Warehouse warehouse, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<Warehouse>> CreateAsync(Warehouse warehouse, CancellationToken cancellationToken = default)
         {
             try
             {
-                warehouse.Id = Guid.NewGuid();
-
                 _context.Warehouses.Add(warehouse);
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Warehouse with id {Id} was saved.", warehouse.Id);
-
-                return warehouse;
+                return ServiceResult<Warehouse>.Ok(warehouse);
             }
             catch (Exception ex)
             {
@@ -84,7 +82,7 @@ namespace Services
             }
         }
 
-        public async Task<Warehouse?> UpdateAsync(Guid id, Warehouse warehouse, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<Warehouse>> UpdateAsync(Guid id, Warehouse warehouse, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -94,7 +92,7 @@ namespace Services
                 if (existing is null)
                 {
                     _logger.LogWarning("Warehouse with id {Id} was not found for update.", id);
-                    return null;
+                    return ServiceResult<Warehouse>.Fail(ServiceError.NotFound, $"Warehouse with id {id} was not found.");
                 }
 
                 existing.Name = warehouse.Name;
@@ -103,8 +101,7 @@ namespace Services
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Warehouse with id {Id} was updated.", id);
-
-                return existing;
+                return ServiceResult<Warehouse>.Ok(existing);
             }
             catch (Exception ex)
             {
@@ -113,7 +110,7 @@ namespace Services
             }
         }
 
-        public async Task<Warehouse?> PatchAsync(Guid id, string? name, string? address, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<Warehouse>> PatchAsync(Guid id, string? name, string? address, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -123,7 +120,7 @@ namespace Services
                 if (existing is null)
                 {
                     _logger.LogWarning("Warehouse with id {Id} was not found for patch.", id);
-                    return null;
+                    return ServiceResult<Warehouse>.Fail(ServiceError.NotFound, $"Warehouse with id {id} was not found.");
                 }
 
                 if (name is not null) existing.Name = name;
@@ -132,8 +129,7 @@ namespace Services
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Warehouse with id {Id} was patched.", id);
-
-                return existing;
+                return ServiceResult<Warehouse>.Ok(existing);
             }
             catch (Exception ex)
             {
@@ -142,7 +138,7 @@ namespace Services
             }
         }
 
-        public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -152,16 +148,14 @@ namespace Services
                 if (existing is null)
                 {
                     _logger.LogWarning("Warehouse with id {Id} was not found for deletion.", id);
-                    return false;
+                    return ServiceResult.Fail(ServiceError.NotFound, $"Warehouse with id {id} was not found.");
                 }
 
                 existing.IsDeleted = true;
-
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Warehouse with id {Id} was deleted.", id);
-
-                return true;
+                return ServiceResult.Ok();
             }
             catch (Exception ex)
             {

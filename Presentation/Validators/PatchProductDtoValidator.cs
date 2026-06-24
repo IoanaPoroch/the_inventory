@@ -8,7 +8,7 @@ namespace Presentation.Validators
         public PatchProductDtoValidator()
         {
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("Name must not be empty.")
+                .NotEmpty().WithMessage("Name is required.")
                 .NameRules()
                 .When(x => x.Name is not null);
 
@@ -17,7 +17,7 @@ namespace Presentation.Validators
                 .When(x => x.Color is not null);
 
             RuleFor(x => x.MadeIn)
-                .NotEmpty().WithMessage("MadeIn must not be empty.")
+                .NotEmpty().WithMessage("MadeIn is required.")
                 .MadeInRules()
                 .When(x => x.MadeIn is not null);
 
@@ -28,6 +28,10 @@ namespace Presentation.Validators
             RuleFor(x => x.WarehouseId)
                 .WarehouseIdRules()
                 .When(x => x.WarehouseId is not null);
+
+            RuleFor(x => x.SupplierId)
+                .SupplierIdRules()
+                .When(x => x.SupplierId is not null);
         }
     }
 }

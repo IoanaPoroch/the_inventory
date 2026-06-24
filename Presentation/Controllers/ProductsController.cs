@@ -4,13 +4,13 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.DTOs.Requests;
 using Presentation.DTOs.Responses;
-using Services;
+using Services.Interfaces;
+using Services.Models;
 
 namespace Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class ProductsController(IProductsService productsService, IMapper mapper, IValidator<PaginationQuery> paginationValidator) : ControllerBase
+    public class ProductsController(IProductsService productsService, IMapper mapper, IValidator<PaginationQuery> paginationValidator) : ApiController
     {
         private readonly IProductsService _productsService = productsService;
         private readonly IMapper _mapper = mapper;
@@ -39,58 +39,39 @@ namespace Presentation.Controllers
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {
-            var product = await _productsService.GetByIdAsync(id, cancellationToken);
-
-            if (product is null)
-                return NotFound();
-
-            return Ok(_mapper.Map<ProductResponseDto>(product));
+            var result = await _productsService.GetByIdAsync(id, cancellationToken);
+            return ToActionResult(result, p => Ok(_mapper.Map<ProductResponseDto>(p)));
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(CreateProductDto dto, CancellationToken cancellationToken)
         {
             var product = _mapper.Map<Product>(dto);
-            var created = await _productsService.CreateAsync(product, cancellationToken);
-
-            if (created is null)
-                return UnprocessableEntity($"Warehouse with id '{dto.WarehouseId}' was not found.");
-
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, _mapper.Map<ProductResponseDto>(created));
+            var result = await _productsService.CreateAsync(product, cancellationToken);
+            return ToActionResult(result, p => CreatedAtAction(nameof(GetById), new { id = p.Id }, _mapper.Map<ProductResponseDto>(p)));
         }
 
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, UpdateProductDto dto, CancellationToken cancellationToken)
         {
             var product = _mapper.Map<Product>(dto);
-            var updated = await _productsService.UpdateAsync(id, product, cancellationToken);
-
-            if (updated is null)
-                return NotFound();
-
-            return Ok(_mapper.Map<ProductResponseDto>(updated));
+            var result = await _productsService.UpdateAsync(id, product, cancellationToken);
+            return ToActionResult(result, p => Ok(_mapper.Map<ProductResponseDto>(p)));
         }
 
         [HttpPatch("{id:guid}")]
         public async Task<IActionResult> Patch(Guid id, PatchProductDto dto, CancellationToken cancellationToken)
         {
-            var patched = await _productsService.PatchAsync(id, dto.Name, dto.Color, dto.MadeIn, dto.Price, dto.WarehouseId, cancellationToken);
-
-            if (patched is null)
-                return NotFound();
-
-            return Ok(_mapper.Map<ProductResponseDto>(patched));
+            var model = _mapper.Map<PatchProductModel>(dto);
+            var result = await _productsService.PatchAsync(id, model, cancellationToken);
+            return ToActionResult(result, p => Ok(_mapper.Map<ProductResponseDto>(p)));
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
-            var deleted = await _productsService.DeleteAsync(id, cancellationToken);
-
-            if (!deleted)
-                return NotFound();
-
-            return NoContent();
+            var result = await _productsService.DeleteAsync(id, cancellationToken);
+            return ToActionResult(result);
         }
     }
 }

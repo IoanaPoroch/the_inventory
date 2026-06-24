@@ -7,5 +7,6 @@ namespace Presentation.DTOs.Requests
         public string MadeIn { get; set; }
         public decimal Price { get; set; }
         public Guid WarehouseId { get; set; }
+        public Guid SupplierId { get; set; }
     }
 }
