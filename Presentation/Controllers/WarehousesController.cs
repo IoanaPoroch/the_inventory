@@ -4,13 +4,12 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.DTOs.Requests;
 using Presentation.DTOs.Responses;
-using Services;
+using Services.Interfaces;
 
 namespace Presentation.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class WarehousesController(IWarehousesService warehousesService, IMapper mapper, IValidator<PaginationQuery> paginationValidator) : ControllerBase
+    public class WarehousesController(IWarehousesService warehousesService, IMapper mapper, IValidator<PaginationQuery> paginationValidator) : ApiController
     {
         private readonly IWarehousesService _warehousesService = warehousesService;
         private readonly IMapper _mapper = mapper;
@@ -39,54 +38,38 @@ namespace Presentation.Controllers
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {
-            var warehouse = await _warehousesService.GetByIdAsync(id, cancellationToken);
-
-            if (warehouse is null)
-                return NotFound($"Warehouse with id {id} was not found.");
-
-            return Ok(_mapper.Map<WarehouseResponseDto>(warehouse));
+            var result = await _warehousesService.GetByIdAsync(id, cancellationToken);
+            return ToActionResult(result, w => Ok(_mapper.Map<WarehouseResponseDto>(w)));
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(CreateWarehouseDto dto, CancellationToken cancellationToken)
         {
             var warehouse = _mapper.Map<Warehouse>(dto);
-            var created = await _warehousesService.CreateAsync(warehouse, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, _mapper.Map<WarehouseResponseDto>(created));
+            var result = await _warehousesService.CreateAsync(warehouse, cancellationToken);
+            return ToActionResult(result, w => CreatedAtAction(nameof(GetById), new { id = w.Id }, _mapper.Map<WarehouseResponseDto>(w)));
         }
 
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, UpdateWarehouseDto dto, CancellationToken cancellationToken)
         {
             var warehouse = _mapper.Map<Warehouse>(dto);
-            var updated = await _warehousesService.UpdateAsync(id, warehouse, cancellationToken);
-
-            if (updated is null)
-                return NotFound($"Warehouse with id {id} was not found.");
-
-            return Ok(_mapper.Map<WarehouseResponseDto>(updated));
+            var result = await _warehousesService.UpdateAsync(id, warehouse, cancellationToken);
+            return ToActionResult(result, w => Ok(_mapper.Map<WarehouseResponseDto>(w)));
         }
 
         [HttpPatch("{id:guid}")]
         public async Task<IActionResult> Patch(Guid id, PatchWarehouseDto dto, CancellationToken cancellationToken)
         {
-            var patched = await _warehousesService.PatchAsync(id, dto.Name, dto.Address, cancellationToken);
-
-            if (patched is null)
-                return NotFound($"Warehouse with id {id} was not found.");
-
-            return Ok(_mapper.Map<WarehouseResponseDto>(patched));
+            var result = await _warehousesService.PatchAsync(id, dto.Name, dto.Address, cancellationToken);
+            return ToActionResult(result, w => Ok(_mapper.Map<WarehouseResponseDto>(w)));
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
-            var deleted = await _warehousesService.DeleteAsync(id, cancellationToken);
-
-            if (!deleted)
-                return NotFound();
-
-            return NoContent();
+            var result = await _warehousesService.DeleteAsync(id, cancellationToken);
+            return ToActionResult(result);
         }
     }
 }

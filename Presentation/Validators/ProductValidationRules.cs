@@ -25,5 +25,11 @@ namespace Presentation.Validators
 
         public static IRuleBuilderOptions<T, Guid?> WarehouseIdRules<T>(this IRuleBuilder<T, Guid?> rule)
             => rule.NotEmpty().WithMessage("WarehouseId must not be empty.");
+
+        public static IRuleBuilderOptions<T, Guid> SupplierIdRules<T>(this IRuleBuilder<T, Guid> rule)
+            => rule.NotEmpty().WithMessage("SupplierId is required.");
+
+        public static IRuleBuilderOptions<T, Guid?> SupplierIdRules<T>(this IRuleBuilder<T, Guid?> rule)
+            => rule.NotEmpty().WithMessage("SupplierId must not be empty.");
     }
 }

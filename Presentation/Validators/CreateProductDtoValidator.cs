@@ -24,6 +24,9 @@ namespace Presentation.Validators
 
             RuleFor(x => x.WarehouseId)
                 .WarehouseIdRules();
+
+            RuleFor(x => x.SupplierId)
+                .SupplierIdRules();
         }
     }
 }

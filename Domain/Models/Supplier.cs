@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Models
 {
-    public class Warehouse : BaseEntity
+    public class Supplier : BaseEntity
     {
         [MaxLength(100)]
         public required string Name { get; set; }

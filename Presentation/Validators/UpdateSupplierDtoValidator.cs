@@ -3,19 +3,17 @@ using Presentation.DTOs.Requests;
 
 namespace Presentation.Validators
 {
-    public class PatchWarehouseDtoValidator : AbstractValidator<PatchWarehouseDto>
+    public class UpdateSupplierDtoValidator : AbstractValidator<UpdateSupplierDto>
     {
-        public PatchWarehouseDtoValidator()
+        public UpdateSupplierDtoValidator()
         {
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Name is required.")
-                .WarehouseNameRules()
-                .When(x => x.Name is not null);
+                .SupplierNameRules();
 
             RuleFor(x => x.Address)
                 .NotEmpty().WithMessage("Address is required.")
-                .AddressRules()
-                .When(x => x.Address is not null);
+                .AddressRules();
         }
     }
 }

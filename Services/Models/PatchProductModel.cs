@@ -1,6 +1,6 @@
-namespace Presentation.DTOs.Requests
+namespace Services.Models
 {
-    public class PatchProductDto
+    public class PatchProductModel
     {
         public string? Name { get; set; }
         public string? Color { get; set; }

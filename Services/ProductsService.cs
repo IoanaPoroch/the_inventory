@@ -2,6 +2,8 @@ using Domain.Data;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Services.Interfaces;
+using Services.Models;
 
 namespace Services
 {
@@ -40,7 +42,7 @@ namespace Services
             }
         }
 
-        public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<Product>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -50,12 +52,11 @@ namespace Services
                 if (product is null)
                 {
                     _logger.LogWarning("Product with id {Id} was not found.", id);
-                    return null;
+                    return ServiceResult<Product>.Fail(ServiceError.NotFound, $"Product with id {id} was not found.");
                 }
 
                 _logger.LogInformation("Product with id {Id} was found.", id);
-
-                return product;
+                return ServiceResult<Product>.Ok(product);
             }
             catch (Exception ex)
             {
@@ -64,7 +65,7 @@ namespace Services
             }
         }
 
-        public async Task<Product?> CreateAsync(Product product, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<Product>> CreateAsync(Product product, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -74,17 +75,23 @@ namespace Services
                 if (!warehouseExists)
                 {
                     _logger.LogWarning("Warehouse with id {WarehouseId} was not found.", product.WarehouseId);
-                    return null;
+                    return ServiceResult<Product>.Fail(ServiceError.DependencyNotFound, $"Warehouse with id {product.WarehouseId} was not found.");
                 }
 
-                product.Id = Guid.NewGuid();
+                var supplierExists = await _context.Suppliers
+                    .AnyAsync(s => s.Id == product.SupplierId && !s.IsDeleted, cancellationToken);
+
+                if (!supplierExists)
+                {
+                    _logger.LogWarning("Supplier with id {SupplierId} was not found.", product.SupplierId);
+                    return ServiceResult<Product>.Fail(ServiceError.DependencyNotFound, $"Supplier with id {product.SupplierId} was not found.");
+                }
 
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Product with id {Id} was saved.", product.Id);
-
-                return product;
+                return ServiceResult<Product>.Ok(product);
             }
             catch (Exception ex)
             {
@@ -93,7 +100,7 @@ namespace Services
             }
         }
 
-        public async Task<Product?> UpdateAsync(Guid id, Product product, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<Product>> UpdateAsync(Guid id, Product product, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -103,7 +110,7 @@ namespace Services
                 if (existing is null)
                 {
                     _logger.LogWarning("Product with id {Id} was not found for update.", id);
-                    return null;
+                    return ServiceResult<Product>.Fail(ServiceError.NotFound, $"Product with id {id} was not found.");
                 }
 
                 var warehouseExists = await _context.Warehouses
@@ -112,7 +119,16 @@ namespace Services
                 if (!warehouseExists)
                 {
                     _logger.LogWarning("Warehouse with id {WarehouseId} was not found.", product.WarehouseId);
-                    return null;
+                    return ServiceResult<Product>.Fail(ServiceError.DependencyNotFound, $"Warehouse with id {product.WarehouseId} was not found.");
+                }
+
+                var supplierExists = await _context.Suppliers
+                    .AnyAsync(s => s.Id == product.SupplierId && !s.IsDeleted, cancellationToken);
+
+                if (!supplierExists)
+                {
+                    _logger.LogWarning("Supplier with id {SupplierId} was not found.", product.SupplierId);
+                    return ServiceResult<Product>.Fail(ServiceError.DependencyNotFound, $"Supplier with id {product.SupplierId} was not found.");
                 }
 
                 existing.Name = product.Name;
@@ -120,12 +136,12 @@ namespace Services
                 existing.MadeIn = product.MadeIn;
                 existing.Price = product.Price;
                 existing.WarehouseId = product.WarehouseId;
+                existing.SupplierId = product.SupplierId;
 
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Product with id {Id} was updated.", id);
-
-                return existing;
+                return ServiceResult<Product>.Ok(existing);
             }
             catch (Exception ex)
             {
@@ -134,7 +150,7 @@ namespace Services
             }
         }
 
-        public async Task<Product?> PatchAsync(Guid id, string? name, string? color, string? madeIn, decimal? price, Guid? warehouseId, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult<Product>> PatchAsync(Guid id, PatchProductModel model, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -144,33 +160,46 @@ namespace Services
                 if (existing is null)
                 {
                     _logger.LogWarning("Product with id {Id} was not found for patch.", id);
-                    return null;
+                    return ServiceResult<Product>.Fail(ServiceError.NotFound, $"Product with id {id} was not found.");
                 }
 
-                if (warehouseId is not null)
+                if (model.WarehouseId is not null)
                 {
                     var warehouseExists = await _context.Warehouses
-                        .AnyAsync(w => w.Id == warehouseId && !w.IsDeleted, cancellationToken);
+                        .AnyAsync(w => w.Id == model.WarehouseId && !w.IsDeleted, cancellationToken);
 
                     if (!warehouseExists)
                     {
-                        _logger.LogWarning("Warehouse with id {WarehouseId} was not found.", warehouseId);
-                        return null;
+                        _logger.LogWarning("Warehouse with id {WarehouseId} was not found.", model.WarehouseId);
+                        return ServiceResult<Product>.Fail(ServiceError.DependencyNotFound, $"Warehouse with id {model.WarehouseId} was not found.");
                     }
 
-                    existing.WarehouseId = warehouseId.Value;
+                    existing.WarehouseId = model.WarehouseId.Value;
                 }
 
-                if (name is not null) existing.Name = name;
-                if (color is not null) existing.Color = color;
-                if (madeIn is not null) existing.MadeIn = madeIn;
-                if (price is not null) existing.Price = price.Value;
+                if (model.SupplierId is not null)
+                {
+                    var supplierExists = await _context.Suppliers
+                        .AnyAsync(s => s.Id == model.SupplierId && !s.IsDeleted, cancellationToken);
+
+                    if (!supplierExists)
+                    {
+                        _logger.LogWarning("Supplier with id {SupplierId} was not found.", model.SupplierId);
+                        return ServiceResult<Product>.Fail(ServiceError.DependencyNotFound, $"Supplier with id {model.SupplierId} was not found.");
+                    }
+
+                    existing.SupplierId = model.SupplierId.Value;
+                }
+
+                if (model.Name is not null) existing.Name = model.Name;
+                if (model.Color is not null) existing.Color = model.Color;
+                if (model.MadeIn is not null) existing.MadeIn = model.MadeIn;
+                if (model.Price is not null) existing.Price = model.Price.Value;
 
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Product with id {Id} was patched.", id);
-
-                return existing;
+                return ServiceResult<Product>.Ok(existing);
             }
             catch (Exception ex)
             {
@@ -179,7 +208,7 @@ namespace Services
             }
         }
 
-        public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<ServiceResult> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -189,16 +218,14 @@ namespace Services
                 if (existing is null)
                 {
                     _logger.LogWarning("Product with id {Id} was not found for deletion.", id);
-                    return false;
+                    return ServiceResult.Fail(ServiceError.NotFound, $"Product with id {id} was not found.");
                 }
 
                 existing.IsDeleted = true;
-
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Product with id {Id} was deleted.", id);
-
-                return true;
+                return ServiceResult.Ok();
             }
             catch (Exception ex)
             {

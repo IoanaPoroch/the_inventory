@@ -7,6 +7,7 @@ using Presentation.Profiles;
 using Presentation.Settings;
 using Presentation.Validators;
 using Services;
+using Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,10 +35,12 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 // per request scope for services that interact with the database
 builder.Services.AddScoped<IProductsService, ProductsService>();
 builder.Services.AddScoped<IWarehousesService, WarehousesService>();
+builder.Services.AddScoped<ISuppliersService, SuppliersService>();
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<ProductMappingProfile>();
     cfg.AddProfile<WarehouseMappingProfile>();
+    cfg.AddProfile<SupplierMappingProfile>();
 });
 
 
